@@ -1,1 +1,1 @@
-#define SCIP_GITHASH "43a0a60119-dirty"
+#define SCIP_GITHASH "4ebc7d02f5-dirty"

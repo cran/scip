@@ -1,3 +1,14 @@
+# scip 1.10.0-3
+
+- Upgrade to SCIP 10.0.2, SoPlex 8.0.2, PaPILO 3.0.0.
+- Enable OpenMP thread pool interface (TPI=omp) when the platform
+  supports it, giving SCIP parallel branch-and-bound. Falls back
+  gracefully to TPI=none when OpenMP is unavailable.
+- Use `SHLIB_OPENMP_CXXFLAGS` in both `PKG_CXXFLAGS` and `PKG_LIBS`
+  per R-exts §1.2.1.1.
+- Drop all tinycthread patches (no longer compiled with TPI=omp/none).
+  Reduces R-specific patch burden from 14 to 10 across submodules.
+
 # scip 1.10.0-1
 
 - Switched build system from hand-maintained Makevars.in (472 lines) to

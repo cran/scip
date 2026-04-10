@@ -79,34 +79,6 @@ extern "C" {
   #define _XPG6
 #endif
 
-/* Prefix C11 thread names to avoid collision with glibc's <threads.h>.
- * R 4.5+ compiles C with -std=gnu2x, which makes glibc expose C11/C23
- * thread functions (mtx_init, etc.) with a different mtx_t layout than
- * tinycthread's pthread_mutex_t-based mtx_t. The name collision causes
- * glibc's version to silently override tinycthread's at link time. */
-#define mtx_init       tct_mtx_init
-#define mtx_destroy    tct_mtx_destroy
-#define mtx_lock       tct_mtx_lock
-#define mtx_unlock     tct_mtx_unlock
-#define mtx_trylock    tct_mtx_trylock
-#define mtx_timedlock  tct_mtx_timedlock
-#define cnd_init       tct_cnd_init
-#define cnd_destroy    tct_cnd_destroy
-#define cnd_signal     tct_cnd_signal
-#define cnd_broadcast  tct_cnd_broadcast
-#define cnd_wait       tct_cnd_wait
-#define cnd_timedwait  tct_cnd_timedwait
-#define thrd_create    tct_thrd_create
-#define thrd_exit      tct_thrd_exit
-#define thrd_join      tct_thrd_join
-#define thrd_sleep     tct_thrd_sleep
-#define thrd_yield     tct_thrd_yield
-#define tss_create     tct_tss_create
-#define tss_delete     tct_tss_delete
-#define tss_get        tct_tss_get
-#define tss_set        tct_tss_set
-#define call_once      tct_call_once
-
 /* Generic includes */
 #include <time.h>
 
@@ -217,9 +189,9 @@ typedef struct {
   int mAlreadyLocked;         /* TRUE if the mutex is already locked */
   int mRecursive;             /* TRUE if the mutex is recursive */
   int mTimed;                 /* TRUE if the mutex is timed */
-} mtx_t;
+} TNY_mtx_t;
 #else
-typedef pthread_mutex_t mtx_t;
+typedef pthread_mutex_t TNY_mtx_t;
 #endif
 
 /** Create a mutex object.
@@ -232,12 +204,12 @@ typedef pthread_mutex_t mtx_t;
 * @return @ref thrd_success on success, or @ref thrd_error if the request could
 * not be honored.
 */
-int mtx_init(mtx_t *mtx, int type);
+int TNY_mtx_init(TNY_mtx_t *mtx, int type);
 
 /** Release any resources used by the given mutex.
 * @param mtx A mutex object.
 */
-void mtx_destroy(mtx_t *mtx);
+void TNY_mtx_destroy(TNY_mtx_t *mtx);
 
 /** Lock the given mutex.
 * Blocks until the given mutex can be locked. If the mutex is non-recursive, and
@@ -247,11 +219,11 @@ void mtx_destroy(mtx_t *mtx);
 * @return @ref thrd_success on success, or @ref thrd_error if the request could
 * not be honored.
 */
-int mtx_lock(mtx_t *mtx);
+int TNY_mtx_lock(TNY_mtx_t *mtx);
 
 /** NOT YET IMPLEMENTED.
 */
-int mtx_timedlock(mtx_t *mtx, const struct timespec *ts);
+int TNY_mtx_timedlock(TNY_mtx_t *mtx, const struct timespec *ts);
 
 /** Try to lock the given mutex.
 * The specified mutex shall support either test and return or timeout. If the
@@ -261,14 +233,14 @@ int mtx_timedlock(mtx_t *mtx, const struct timespec *ts);
 * requested is already in use, or @ref thrd_error if the request could not be
 * honored.
 */
-int mtx_trylock(mtx_t *mtx);
+int TNY_mtx_trylock(TNY_mtx_t *mtx);
 
 /** Unlock the given mutex.
 * @param mtx A mutex object.
 * @return @ref thrd_success on success, or @ref thrd_error if the request could
 * not be honored.
 */
-int mtx_unlock(mtx_t *mtx);
+int TNY_mtx_unlock(TNY_mtx_t *mtx);
 
 /* Condition variable */
 #if defined(_TTHREAD_WIN32_)
@@ -323,7 +295,7 @@ int cnd_broadcast(cnd_t *cond);
 * @return @ref thrd_success on success, or @ref thrd_error if the request could
 * not be honored.
 */
-int cnd_wait(cnd_t *cond, mtx_t *mtx);
+int cnd_wait(cnd_t *cond, TNY_mtx_t *mtx);
 
 /** Wait for a condition variable to become signaled.
 * The function atomically unlocks the given mutex and endeavors to block until
@@ -337,7 +309,7 @@ int cnd_wait(cnd_t *cond, mtx_t *mtx);
 * specified in the call was reached without acquiring the requested resource, or
 * @ref thrd_error if the request could not be honored.
 */
-int cnd_timedwait(cnd_t *cond, mtx_t *mtx, const struct timespec *ts);
+int cnd_timedwait(cnd_t *cond, TNY_mtx_t *mtx, const struct timespec *ts);
 
 /* Thread */
 #if defined(_TTHREAD_WIN32_)
@@ -475,11 +447,11 @@ int tss_set(tss_t key, void *val);
   typedef struct {
     LONG volatile status;
     CRITICAL_SECTION lock;
-  } once_flag;
-  #define ONCE_FLAG_INIT {0,}
+  } TNY_once_flag;
+  #define TNY_ONCE_FLAG_INIT {0,}
 #else
-  #define once_flag pthread_once_t
-  #define ONCE_FLAG_INIT PTHREAD_ONCE_INIT
+  #define TNY_once_flag pthread_once_t
+  #define TNY_ONCE_FLAG_INIT PTHREAD_ONCE_INIT
 #endif
 
 /** Invoke a callback exactly once
@@ -488,9 +460,9 @@ int tss_set(tss_t key, void *val);
  * @param func Callback to invoke.
  */
 #if defined(_TTHREAD_WIN32_)
-  void call_once(once_flag *flag, void (*func)(void));
+  void TNY_call_once(TNY_once_flag *flag, void (*func)(void));
 #else
-  #define call_once(flag,func) pthread_once(flag,func)
+  #define TNY_call_once(flag,func) pthread_once(flag,func)
 #endif
 
 #ifdef __cplusplus

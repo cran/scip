@@ -91,7 +91,7 @@ namespace soplex
 // Overloaded EQ function
 bool EQ(int a, int b);
 
-#define SOPLEX_VERSION         801
+#define SOPLEX_VERSION         802
 #define SOPLEX_VERSION_SUB       0  ///< @deprecated Always 0
 #define SOPLEX_SUBVERSION        0  ///< @deprecated Always 0
 #define SOPLEX_APIVERSION       20
@@ -300,6 +300,22 @@ typedef double Real;
 
 #define SPX_MAXSTRLEN       1024 /**< maximum string length in SoPlex */
 
+/* Sparse vector handling:
+ * - Positive zero (+0): Uninitialized position, not in structure
+ * - Negative zero (-0): Value cancelled to zero, can temporarily remain
+ * - Nonzero value: Active structure position
+ * Zero distinction avoids duplicate indices when values cancel to zero during updates.
+ * Only apply to floating point types because the rational zero is unsigned.
+ */
+
+/// detects whether value is positive zero
+template <typename R>
+inline bool isPlusZero(R x)
+{
+   using std::signbit;
+   return x == 0 && !signbit(x);
+}
+
 SOPLEX_THREADLOCAL extern const Real infinity;
 
 class Tolerances
@@ -460,7 +476,7 @@ inline int spxSnprintf(
 
    va_start(ap, s); /*lint !e826*/
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
    n = _vsnprintf(t, len, s, ap);
 #else
    n = vsnprintf(t, len, s, ap); /*lint !e571*/

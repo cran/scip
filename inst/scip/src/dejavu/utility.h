@@ -2,7 +2,7 @@
 // This file is part of dejavu 2.1.
 // See LICENSE for extended copyright information.
 
-#include <ostream>
+#include <iostream>
 #include "r_streams.h"
 #include <algorithm>
 #include <random>

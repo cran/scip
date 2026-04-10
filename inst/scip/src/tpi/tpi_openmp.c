@@ -36,6 +36,7 @@
 #include "blockmemshell/memory.h"
 #include "scip/pub_message.h"
 #include "scip/pub_misc.h"
+#include "r_streams.h"
 #include <omp.h>
 
 /* macros for direct access */
@@ -414,14 +415,14 @@ SCIP_RETCODE SCIPtpiBroadcastCondition(
 
 /** returns the number of threads */
 int SCIPtpiGetNumThreads(
-   )
+   void)
 {
    return omp_get_num_threads();
 }
 
 /** returns the thread number */
 int SCIPtpiGetThreadNum(
-   )
+   void)
 {
    return omp_get_thread_num();
 }
@@ -583,7 +584,7 @@ SCIP_RETCODE SCIPtpiCollectJobs(
    else
    {
       /* given jobid was not submitted */
-      printf("err1");
+      Rprintf("err1");
       retcode = SCIP_ERROR;
    }
 

@@ -20,14 +20,12 @@ if(POLICY CMP0167)
    cmake_policy(SET CMP0167 NEW)
 endif()
 
-include(GNUInstallDirs)
-
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_DEBUG} ${CMAKE_C_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_RELEASE}")
 
 set(SCIP_VERSION_MAJOR 10)
 set(SCIP_VERSION_MINOR 0)
-set(SCIP_VERSION_PATCH 1)
+set(SCIP_VERSION_PATCH 2)
 set(SCIP_VERSION_API 156)
 
 project(SCIP
@@ -35,6 +33,8 @@ project(SCIP
     LANGUAGES CXX C
     DESCRIPTION "SCIP is currently one of the fastest non-commercial solvers for mixed integer programming (MIP) and mixed integer nonlinear programming (MINLP)"
     )
+
+include(GNUInstallDirs)
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 if(hasParent)
