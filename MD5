@@ -1,6 +1,6 @@
-c77463efdc6f0cfdc684548cacf3c8d7 *DESCRIPTION
+bc75d752b748a772cfe947cee12d8290 *DESCRIPTION
 eb18aa82a25893474c33ab11b229510c *NAMESPACE
-acdb80cfcfc3314298f5e9bef3a8d664 *NEWS.md
+6a1a89aa269d231afdf879479eca5f16 *NEWS.md
 86de61c18099ff63fef8c7139d54f6d8 *R/controls.R
 d4101ac448f40cdb241735a2c3cc6d98 *R/model.R
 2ce754dfdd4c61d4ddc4cd69248702d9 *R/scip-package.R
@@ -8,7 +8,7 @@ d4101ac448f40cdb241735a2c3cc6d98 *R/model.R
 b32cb2527077ca0e3453f2432ad4a127 *R/sparse.R
 1a3db95c0d467d53079133387dd2d645 *R/zzz.R
 83e820a8e0e0f7c9c4f0548f1abe9ccb *README.md
-b8d23908906370209693e2c9034c152b *build/vignette.rds
+9cd5eb695773dbb00816eb67f45cdeec *build/vignette.rds
 c167314ff7c52b2237a43a77ab556141 *cleanup
 425bcfba934f38b7a44afaa49800bb53 *configure
 8cf5e38a30acf15e69b10ce918a0da30 *configure.win
@@ -644,7 +644,7 @@ ac32a240ce69684f197a75824ffe0063 *inst/scip/src/scip/expr_xyz.h
 bec765e0122a885fbec63686ae04bfad *inst/scip/src/scip/exprinterpret_none.c
 07df5b95fa00f87d2807c272692ddfe8 *inst/scip/src/scip/expriter.c
 8376f986ab08ae7993c723f20b668fa7 *inst/scip/src/scip/fileio.c
-0c69ec53cfd371f7823f545d6f460979 *inst/scip/src/scip/githash.c
+a1af8b57b3d245d90f0b498c9e8a45d1 *inst/scip/src/scip/githash.c
 dbe9a805b9b9627f7eeef4f4c3374ab4 *inst/scip/src/scip/heur.c
 796982cb0f7339765b1ae260ef2d5288 *inst/scip/src/scip/heur.h
 e6834ae8db0c01e4b4bda4d021bed0c3 *inst/scip/src/scip/heur_actconsdiving.c
@@ -810,7 +810,7 @@ d0faf8e9422d161cd19e041a19f43d86 *inst/scip/src/scip/message_default.c
 0478de480aed63bbcb9b8d2f5a7cbc4e *inst/scip/src/scip/misc.h
 bfcc62255c5753d92568215713d81019 *inst/scip/src/scip/misc_linear.c
 a40b23b8bc484ae4edc0b8a1f26603d1 *inst/scip/src/scip/misc_rowprep.c
-9818d22c0524c3fd4d0dc28a5879c4a8 *inst/scip/src/scip/multiprecision.hpp
+f2f5fb20e8c0a1287c068896a77059cd *inst/scip/src/scip/multiprecision.hpp
 bf5cce7189f8ac93c80d97050572aa52 *inst/scip/src/scip/network.c
 00fdce0d2943f6e6cee0c1f675e6c727 *inst/scip/src/scip/nlhdlr.c
 5b6acfc6e8fc339c9cf56cbb1f6708b4 *inst/scip/src/scip/nlhdlr.h
@@ -1452,7 +1452,7 @@ f8123cb9dd2ac2a1826d4a625fe25599 *inst/soplex/src/depend
 478e905565462acd0be2517a9ad7958a *inst/soplex/src/soplex.h
 15216f0cca8f8810d859b1a9ec45cbf4 *inst/soplex/src/soplex.hpp
 9cdf8bbe36c72bf003a8f64ed26f09ca *inst/soplex/src/soplex/array.h
-b04e4ee232774856b988bee963a1350a *inst/soplex/src/soplex/basevectors.h
+02a72b1140d89a8e511bb9175877317e *inst/soplex/src/soplex/basevectors.h
 0b8eb3632d8decf4e9035097f272e7f4 *inst/soplex/src/soplex/changesoplex.hpp
 df52fc40d6b2b9c1b343d8a8ab3efad0 *inst/soplex/src/soplex/classarray.h
 dc759052f651e723ea2fa03655ddd366 *inst/soplex/src/soplex/classset.h
@@ -1492,7 +1492,7 @@ abd1b8c3937430fd5cb0449e8e7ea18f *inst/soplex/src/soplex/external/fmt/os.h
 654b5ca4a6f79ba029d29114344d4203 *inst/soplex/src/soplex/external/fmt/printf.h
 ec3028edfb6da99f219bb3fb20de10fd *inst/soplex/src/soplex/external/fmt/ranges.h
 017a333da0ed5efa6a57bb49f42d71db *inst/soplex/src/soplex/fmt.hpp
-31f5c26d8fd29759b3650c51b1a3859d *inst/soplex/src/soplex/git_hash.cpp
+3baffdb445170471b72d1f5f8889861a *inst/soplex/src/soplex/git_hash.cpp
 e508cac5c199623c2e524ec5f0caf68e *inst/soplex/src/soplex/idlist.h
 8dbc77032ab5a0cf6a9ceb290056fb54 *inst/soplex/src/soplex/idxset.cpp
 e346c3baf5d96902921de1967f472520 *inst/soplex/src/soplex/idxset.h
@@ -1506,7 +1506,7 @@ f2662ee13c004ea100ef4033f715c829 *inst/soplex/src/soplex/lprow.h
 924cb3dc668f3414aa60b239398efb95 *inst/soplex/src/soplex/lprowbase.h
 c8ce3812e54e0f47cc674c51518d3742 *inst/soplex/src/soplex/lprowset.h
 3928ddfd19113dc5e896f8d59e32b6fa *inst/soplex/src/soplex/lprowsetbase.h
-0a00e53efdaef516c0b6f002e0ba4590 *inst/soplex/src/soplex/mpsinput.cpp
+78c04d5f3d80fb6ffa4ae26701be256f *inst/soplex/src/soplex/mpsinput.cpp
 89a2db28c791a592cc5db0148b7cbccb *inst/soplex/src/soplex/mpsinput.h
 d4f394dd0ce941459d6e3432069b0982 *inst/soplex/src/soplex/nameset.cpp
 f959835bf57c1176e2544ae78dccf151 *inst/soplex/src/soplex/nameset.h

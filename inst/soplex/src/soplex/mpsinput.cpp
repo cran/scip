@@ -28,6 +28,7 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <istream>
 #include <string.h>
 
 #include "soplex/spxdefines.h"

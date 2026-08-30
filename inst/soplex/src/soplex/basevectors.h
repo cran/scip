@@ -34,6 +34,8 @@
 #undef SOPLEX_DEBUG
 #endif
 
+#include <istream>
+
 #include "soplex/spxdefines.h"
 #include "soplex/rational.h"
 #include "soplex/vectorbase.h"
