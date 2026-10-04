@@ -2942,6 +2942,7 @@ SCIP_RETCODE SCIPsolveConcurrent(
    SCIP_RANDNUMGEN* rndgen;
    int minnthreads;
    int maxnthreads;
+   int usesymmetry;
    int i;
 
    SCIP_CALL( SCIPcheckStage(scip, "SCIPsolveConcurrent", FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE) );
@@ -2959,6 +2960,13 @@ SCIP_RETCODE SCIPsolveConcurrent(
       return SCIP_NOTIMPLEMENTED;
    }
 
+   /* concurrent solvers do not support reoptimization */
+   if( scip->set->reopt_enable )
+   {
+      SCIPerrorMessage("Concurrent solve not implemented for reoptimization mode.\n");
+      return SCIP_NOTIMPLEMENTED;
+   }
+
    SCIP_CALL( SCIPsetIntParam(scip, "timing/clocktype", (int)SCIP_CLOCKTYPE_WALL) );
 
    minnthreads = scip->set->parallel_minnthreads;
@@ -2969,6 +2977,10 @@ SCIP_RETCODE SCIPsolveConcurrent(
       SCIPerrorMessage("minimum number of threads greater than maximum number of threads\n");
       return SCIP_INVALIDDATA;
    }
+
+   /* capture the CTRL-C interrupt */
+   if( scip->set->misc_catchctrlc )
+      SCIPinterruptCapture(scip->interrupt);
 
    if( scip->concurrent == NULL )
    {
@@ -2982,13 +2994,25 @@ SCIP_RETCODE SCIPsolveConcurrent(
       int ncandsolvertypes;
       int nthreads = INT_MAX;
 
+      /* temporarily disable symmetry if symmetrybefore is FALSE */
+      if( scip->set->concurrent_symmetrybefore )
+         usesymmetry = -1;
+      else
+      {
+         usesymmetry = scip->set->misc_usesymmetry;
+         scip->set->misc_usesymmetry = 0;
+      }
+
       /* check whether concurrent solve is configured to presolve the problem before setting up the concurrent solvers */
       if( scip->set->concurrent_presolvebefore )
       {
          /* if yes, then presolve the problem */
          SCIP_CALL( SCIPpresolve(scip) );
          if( SCIPgetStatus(scip) != SCIP_STATUS_UNKNOWN )
-            return SCIP_OKAY;
+         {
+            retcode = SCIP_OKAY;
+            goto TERMINATE;
+         }
       }
       else
       {
@@ -2996,16 +3020,22 @@ SCIP_RETCODE SCIPsolveConcurrent(
 
          /* if not, transform the problem and switch stage to presolved */
          SCIP_CALL( SCIPtransformProb(scip) );
+
          SCIP_CALL( initPresolve(scip) );
          SCIP_CALL( exitPresolve(scip, TRUE, &infeas) );
          assert(!infeas);
       }
 
+      /* restore symmetry setting for concurrent solvers */
+      if( usesymmetry >= 0 )
+         scip->set->misc_usesymmetry = usesymmetry;
+
       /* if presolving has run into a limit, we stop here */
       if( scip->set->stage < SCIP_STAGE_PRESOLVED )
       {
          SCIP_CALL( displayRelevantStats(scip) );
-         return SCIP_OKAY;
+         retcode = SCIP_OKAY;
+         goto TERMINATE;
       }
 
       /* estimate memory */
@@ -3038,14 +3068,16 @@ SCIP_RETCODE SCIPsolveConcurrent(
          SCIPsyncstoreSetSolveIsStopped(SCIPgetSyncstore(scip), TRUE);
          SCIPwarningMessage(scip, "Requested minimum number of threads could not be satisfied with given memory limit.\n");
          SCIP_CALL( displayRelevantStats(scip) );
-         return SCIP_OKAY;
+         retcode = SCIP_OKAY;
+         goto TERMINATE;
       }
 
       if( nthreads == 1 )
       {
          SCIPwarningMessage(scip, "Can only use 1 thread, performing sequential solve instead.\n");
          SCIP_CALL( SCIPfreeConcurrent(scip) );
-         return SCIPsolve(scip);
+         retcode = SCIPsolve(scip);
+         goto TERMINATE;
       }
       nthreads = MIN(nthreads, maxnthreads);
       SCIPverbMessage(scip, SCIP_VERBLEVEL_HIGH, NULL, "Using %d threads for concurrent solve.\n", nthreads);
@@ -3114,6 +3146,11 @@ SCIP_RETCODE SCIPsolveConcurrent(
    retcode = SCIPconcurrentSolve(scip);
    SCIPclockStop(scip->stat->solvingtime, scip->set);
    SCIP_CALL( displayRelevantStats(scip) );
+
+TERMINATE:
+   /* release the CTRL-C interrupt */
+   if( scip->set->misc_catchctrlc )
+      SCIPinterruptRelease(scip->interrupt);
 
    return retcode;
 }

@@ -62,7 +62,7 @@
 #include "scip/scip_solvingstats.h"
 #include "scip/scip_timing.h"
 #include "scip/syncstore.h"
-#include <string.h>
+#include "scip/prop_symmetry.h"
 
 /* event handler for synchronization */
 #define EVENTHDLR_NAME         "sync"
@@ -90,7 +90,8 @@ SCIP_DECL_EVENTFREE(eventFreeSync)
 
    assert(scip != NULL);
    assert(eventhdlr != NULL);
-   assert(strcmp(SCIPeventhdlrGetName(eventhdlr), EVENTHDLR_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPeventhdlrGetName(eventhdlr), EVENTHDLR_NAME, SCIP_INVALIDCALL );
 
    eventhdlrdata = SCIPeventhdlrGetData(eventhdlr);
    assert(eventhdlrdata != NULL);
@@ -111,7 +112,8 @@ SCIP_DECL_EVENTINIT(eventInitSync)
 
    assert(scip != NULL);
    assert(eventhdlr != NULL);
-   assert(strcmp(SCIPeventhdlrGetName(eventhdlr), EVENTHDLR_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPeventhdlrGetName(eventhdlr), EVENTHDLR_NAME, SCIP_INVALIDCALL );
 
    eventhdlrdata = SCIPeventhdlrGetData(eventhdlr);
    assert(eventhdlrdata != NULL);
@@ -136,7 +138,8 @@ SCIP_DECL_EVENTEXIT(eventExitSync)
 
    assert(scip != NULL);
    assert(eventhdlr != NULL);
-   assert(strcmp(SCIPeventhdlrGetName(eventhdlr), EVENTHDLR_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPeventhdlrGetName(eventhdlr), EVENTHDLR_NAME, SCIP_INVALIDCALL );
 
    eventhdlrdata = SCIPeventhdlrGetData(eventhdlr);
    assert(eventhdlrdata != NULL);
@@ -156,9 +159,10 @@ static
 SCIP_DECL_EVENTEXEC(eventExecSync)
 {  /*lint --e{715}*/
    assert(eventhdlr != NULL);
-   assert(strcmp(SCIPeventhdlrGetName(eventhdlr), EVENTHDLR_NAME) == 0);
    assert(event != NULL);
    assert(scip != NULL);
+
+   SCIP_STRINGEQ( SCIPeventhdlrGetName(eventhdlr), EVENTHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIP_CALL( SCIPsynchronize(scip) );
 
@@ -256,6 +260,7 @@ SCIP_RETCODE initConcsolver(
    SCIP_VAR** mainvars;
    SCIP_VAR** mainfixedvars;
    SCIP_VAR** mainallvars;
+   SCIP_Bool symmetrybefore;
    SCIP_Bool valid;
    int nmainvars;
    int nmainfixedvars;
@@ -271,10 +276,12 @@ SCIP_RETCODE initConcsolver(
 
    /* we force the copying of symmetry constraints that may have been detected during a central presolving step;
     * otherwise, the copy may become invalid */
-   if( SCIPsetBoolParam(scip, "constraints/orbitope_full/forceconscopy", TRUE) != SCIP_OKAY
+   SCIP_CALL( SCIPgetBoolParam(scip, "concurrent/symmetrybefore", &symmetrybefore) );
+   if( symmetrybefore
+      && ( SCIPsetBoolParam(scip, "constraints/orbitope_full/forceconscopy", TRUE) != SCIP_OKAY
       || SCIPsetBoolParam(scip, "constraints/orbitope_pp/forceconscopy", TRUE) != SCIP_OKAY
       || SCIPsetBoolParam(scip, "constraints/orbisack/forceconscopy", TRUE) != SCIP_OKAY
-      || SCIPsetBoolParam(scip, "constraints/symresack/forceconscopy", TRUE) != SCIP_OKAY )
+      || SCIPsetBoolParam(scip, "constraints/symresack/forceconscopy", TRUE) != SCIP_OKAY ) )
    {
       SCIPdebugMessage("Could not force copying of symmetry constraints\n");
    }
@@ -290,6 +297,12 @@ SCIP_RETCODE initConcsolver(
    SCIP_CALL( SCIPcopyConsCompression(scip, data->solverscip, varmapfw, NULL, SCIPconcsolverGetName(concsolver),
          NULL, NULL, 0, TRUE, FALSE, FALSE, FALSE, &valid) );
    assert(valid);
+
+   /* include symmetry propagator if symmetry wasn't computed before and user wants symmetry */
+   if( !symmetrybefore )
+   {
+      SCIP_CALL( SCIPincludePropSymmetry(data->solverscip) );
+   }
 
    /* Note that because some aggregations or fixed variables cannot be resolved by some constraint handlers (in
     * particular cons_sos1, cons_sos2, cons_and), the copied problem may contain more variables than the original

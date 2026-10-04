@@ -83,7 +83,7 @@
 #include "scip/scip_var.h"
 #include "scip/symmetry_graph.h"
 #include "symmetry/struct_symmetry.h"
-#include <string.h>
+
 
 /* constraint handler properties */
 #define CONSHDLR_NAME          "xor"
@@ -968,9 +968,8 @@ SCIP_RETCODE applyFixings(
          /* delete both variables */
          SCIPdebugMsg(scip, "xor constraint <%s>: deleting pair of equal variables <%s>\n",
                SCIPconsGetName(cons), SCIPvarGetName(consdata->vars[v]));
-         SCIP_CALL( delCoefPos(scip, cons, eventhdlr, v + 1) );
-         SCIP_CALL( delCoefPos(scip, cons, eventhdlr, v) );
-         *nchgcoefs += 2;
+
+         /* collect variable to subtract from intvar after pair removal */
          if( consdata->intvar != NULL )
          {
             assert(intoffsetvars != NULL);
@@ -989,6 +988,10 @@ SCIP_RETCODE applyFixings(
                ++intoffsetnvars;
             }
          }
+
+         SCIP_CALL( delCoefPos(scip, cons, eventhdlr, v + 1) );
+         SCIP_CALL( delCoefPos(scip, cons, eventhdlr, v) );
+         *nchgcoefs += 2;
          --v;
       }
       else if( consdata->vars[v] == SCIPvarGetNegatedVar(consdata->vars[v + 1]) ) /*lint !e679*/
@@ -996,12 +999,15 @@ SCIP_RETCODE applyFixings(
          /* delete both variables and negate the rhs */
          SCIPdebugMsg(scip, "xor constraint <%s>: deleting pair of negated variables <%s> and <%s>\n",
                SCIPconsGetName(cons), SCIPvarGetName(consdata->vars[v]), SCIPvarGetName(consdata->vars[v+1])); /*lint !e679*/
-         SCIP_CALL( delCoefPos(scip, cons, eventhdlr, v + 1) );
-         SCIP_CALL( delCoefPos(scip, cons, eventhdlr, v) );
-         *nchgcoefs += 2;
+
+         /* flip rhs and track constant offset to subtract from intvar after pair removal */
          consdata->rhs = !consdata->rhs;
          if( consdata->rhs )
             ++intoffsetconst;
+
+         SCIP_CALL( delCoefPos(scip, cons, eventhdlr, v + 1) );
+         SCIP_CALL( delCoefPos(scip, cons, eventhdlr, v) );
+         *nchgcoefs += 2;
          --v;
       }
       else
@@ -1009,7 +1015,8 @@ SCIP_RETCODE applyFixings(
       --v;
    }
 
-   /* if there is an offset of the integer variable y, it needs to be replaced by z with
+   /* a xor constraint is represented by sum(x) - 2 * intvar = rhs, so variable duplicate
+    * offsets need to be eliminated from the integer variable y, replacing it by z with
     * y = z + intoffsetsum and z in [max(lb_y - intoffsetmax, 0), ub_y - intoffsetmin]
     */
    if( consdata->intvar != NULL )
@@ -4635,8 +4642,9 @@ static
 SCIP_DECL_LINCONSUPGD(linconsUpgdXor)
 {  /*lint --e{715}*/
    assert(upgdcons != NULL);
-   assert(strcmp(SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), "linear") == 0);
    assert(!SCIPconsIsModifiable(cons));
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), "linear", SCIP_INVALIDCALL );
 
    /* check, if linear constraint can be upgraded to xor constraint */
    /* @todo also applicable if the integer variable has a coefficient different from 2, e.g. a coefficient like 0.5 then
@@ -4915,7 +4923,8 @@ SCIP_DECL_CONSHDLRCOPY(conshdlrCopyXor)
 {  /*lint --e{715}*/
    assert(scip != NULL);
    assert(conshdlr != NULL);
-   assert(strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    /* call inclusion method of constraint handler */
    SCIP_CALL( SCIPincludeConshdlrXor(scip) );
@@ -6106,12 +6115,7 @@ int SCIPgetNVarsXor(
 
    assert(scip != NULL);
 
-   if( strcmp(SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), CONSHDLR_NAME) != 0 )
-   {
-      SCIPerrorMessage("constraint is not an xor constraint\n");
-      SCIPABORT();
-      return -1;  /*lint !e527*/
-   }
+   SCIP_STRINGEQ( SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), CONSHDLR_NAME, -1 );
 
    consdata = SCIPconsGetData(cons);
    assert(consdata != NULL);
@@ -6129,12 +6133,7 @@ SCIP_VAR** SCIPgetVarsXor(
 
    assert(scip != NULL);
 
-   if( strcmp(SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), CONSHDLR_NAME) != 0 )
-   {
-      SCIPerrorMessage("constraint is not an xor constraint\n");
-      SCIPABORT();
-      return NULL;  /*lint !e527*/
-   }
+   SCIP_STRINGEQ( SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), CONSHDLR_NAME, NULL );
 
    consdata = SCIPconsGetData(cons);
    assert(consdata != NULL);
@@ -6152,12 +6151,7 @@ SCIP_VAR* SCIPgetIntVarXor(
 
    assert(scip != NULL);
 
-   if( strcmp(SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), CONSHDLR_NAME) != 0 )
-   {
-      SCIPerrorMessage("constraint is not an xor constraint\n");
-      SCIPABORT();
-      return NULL;  /*lint !e527*/
-   }
+   SCIP_STRINGEQ( SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), CONSHDLR_NAME, NULL );
 
    consdata = SCIPconsGetData(cons);
    assert(consdata != NULL);
@@ -6175,11 +6169,7 @@ SCIP_Bool SCIPgetRhsXor(
 
    assert(scip != NULL);
 
-   if( strcmp(SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), CONSHDLR_NAME) != 0 )
-   {
-      SCIPerrorMessage("constraint is not an xor constraint\n");
-      SCIPABORT();
-   }
+   SCIP_STRINGEQ( SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), CONSHDLR_NAME, FALSE );
 
    consdata = SCIPconsGetData(cons);
    assert(consdata != NULL);

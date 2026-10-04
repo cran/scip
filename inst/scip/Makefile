@@ -67,6 +67,7 @@ BUILDFLAGS =	" ARCH=$(ARCH)\\n\
 		SANITIZE=$(SANITIZE)\\n\
 		SHARED=$(SHARED)\\n\
 		CHECKSTAGE=$(CHECKSTAGE)\\n\
+		CHECKNAME=$(CHECKNAME)\\n\
 		DEBUGSOL=$(DEBUGSOL)\\n\
 		EXACTSOLVE=$(EXACTSOLVE)\\n\
 		NOBLKBUFMEM=$(NOBLKBUFMEM)\\n\
@@ -195,8 +196,8 @@ endif
 LPSOPTIONS	+=	highs
 ifeq ($(LPS),highs)
 LINKER		=	CPP
-FLAGS		+=	-I$(LIBDIR)/$(LIBTYPE)/highs.$(OSTYPE).$(ARCH).$(COMP).$(LPSOPT)/
-LPILIBOBJ	=	lpi/lpi_highs.o scip/bitencode.o blockmemshell/memory.o scip/message.o
+FLAGS		+=	-I$(LIBDIR)/$(LIBTYPE)/highs.$(OSTYPE).$(ARCH).$(COMP).$(LPSOPT)/include/highs
+LPILIBOBJ	=	lpi/lpi_highs.o scip/bitencode.o blockmemshell/memory.o scip/rbtree.o scip/message.o
 LPILIBSRC	=	$(SRCDIR)/lpi/lpi_highs.cpp $(SRCDIR)/scip/bitencode.c $(SRCDIR)/blockmemshell/memory.c $(SRCDIR)/scip/message.c
 SOFTLINKS	+=	$(LIBDIR)/$(LIBTYPE)/highs.$(OSTYPE).$(ARCH).$(COMP).$(LPSOPT)
 LPIINSTMSG	=	"  -> \"highs.$(OSTYPE).$(ARCH).$(COMP).$(LPSOPT)\" is the path to the HiGHS directory containing headers and libhighs.so.\n"
@@ -1737,6 +1738,9 @@ ifeq ($(AMPL),true)
 endif
 ifeq ($(CHECKSTAGE),true)
 		@echo "#define SCIP_CHECK_STAGE" >> $@
+endif
+ifeq ($(CHECKNAME),true)
+		@echo "#define SCIP_CHECK_NAME" >> $@
 endif
 		@echo >> $@
 		@echo "#endif /* SCIP_CONFIG_H */" >> $@

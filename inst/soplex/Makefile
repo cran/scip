@@ -51,12 +51,13 @@ include make/make.detecthost
 # default settings
 #-----------------------------------------------------------------------------
 
-VERSION		:=	8.0.2
+VERSION		:=	8.1.0
 SPXGITHASH	=
 
 VERBOSE		=	false
 SHARED		=	false
 OPT		=	opt
+LTO		=	false
 STATICLIBEXT	=	a
 SHAREDLIBEXT	=	so
 LIBEXT		=	$(STATICLIBEXT)
@@ -84,8 +85,13 @@ QUADMATH =  false
 BOOST    =  false
 GMP      =  auto
 MPFR     =  auto
+SYSTEM_FMT = false
 
+ifeq ($(OSTYPE),darwin)
+COMP		=	clang
+else
 COMP		=	gnu
+endif
 CXX		=	g++
 CXX_c		=	-c # the trailing space is important
 CXX_o		=	-o # the trailing space is important
@@ -117,6 +123,7 @@ LDFLAGS		=
 ARFLAGS		=	cr
 DFLAGS		=	-MM
 
+FMT_LDFLAGS	= 	-lfmt
 GMP_LDFLAGS	= 	-lgmp
 GMP_CPPFLAGS	=
 QUADMATH_LDFLAGS = 	-lquadmath
@@ -251,6 +258,13 @@ ifeq ($(OPENSOURCE), false)
 	override MPFR	=	false
 endif
 
+# For system FMT
+ifeq ($(SYSTEM_FMT),true)
+	LDFLAGS += $(FMT_LDFLAGS)
+else
+	FMT_LDFLAGS =
+endif
+
 ifeq ($(GMP),auto)
 GMP     =  $(BOOST)
 ifeq ($(GMP)-$(MAKELEVEL),false-0)
@@ -329,7 +343,7 @@ endif
 endif
 
 ifeq ($(SHARED),true)
-EXT_LIBS	= $(ZLIB_LDFLAGS) $(GMP_LDFLAGS) $(BOOST_LDFLAGS) $(QUADMATH_LDFLAGS)
+EXT_LIBS	= $(FMT_LDFLAGS) $(ZLIB_LDFLAGS) $(GMP_LDFLAGS) $(BOOST_LDFLAGS) $(QUADMATH_LDFLAGS)
 endif
 
 
@@ -597,6 +611,9 @@ endif
 		@echo "LAST_USRLDFLAGS=$(USRLDFLAGS)" >> $(LASTSETTINGS)
 		@echo "LAST_USRARFLAGS=$(USRARFLAGS)" >> $(LASTSETTINGS)
 		@echo "LAST_USRDFLAGS=$(USRDFLAGS)" >> $(LASTSETTINGS)
+ifeq ($(SYSTEM_FMT), true)
+		@echo "#define SOPLEX_WITH_SYSTEM_FMT" >> $(CONFIGFILE)
+endif
 ifeq ($(GMP), true)
 		@echo "#define SOPLEX_WITH_GMP" >> $(CONFIGFILE)
 endif
@@ -675,6 +692,11 @@ endif
 
 .PHONY: checkdefines
 checkdefines:
+ifneq ($(SYSTEM_FMT),true)
+ifneq ($(SYSTEM_FMT),false)
+		$(error invalid SYSTEM_FMT flag selected: SYSTEM_FMT=$(SYSTEM_FMT). Possible options are: true false)
+endif
+endif
 ifneq ($(GMP),true)
 ifneq ($(GMP),false)
 		$(error invalid GMP flag selected: GMP=$(GMP). Possible options are: true false)
@@ -700,6 +722,9 @@ endif
 
 .PHONY: errorhints
 errorhints:
+ifeq ($(SYSTEM_FMT),true)
+		@echo "build failed with SYSTEM_FMT=true: if FMT is not available, try building with SYSTEM_FMT=false"
+endif
 ifeq ($(MPFR),true)
 		@echo "build failed with MPFR=true: if MPFR is not available, try building with MPFR=false"
 endif

@@ -245,6 +245,12 @@ for (i in 1:3) {
 ## One-shot: time limit and gap tolerance
 ctrl <- scip_control(verbose = FALSE, time_limit = 60, gap_limit = 0.01)
 
+## One-shot: aggressive presolving, heuristics, and cut separation
+ctrl2 <- scip_control(verbose = FALSE,
+                      presolve_emphasis = "aggressive",
+                      heuristics_emphasis = "aggressive",
+                      separating_emphasis = "aggressive")
+
 ## Model-building: set SCIP parameters directly
 m <- scip_model("tuning_example")
 scip_set_param(m, "display/verblevel", 0L)   # suppress output

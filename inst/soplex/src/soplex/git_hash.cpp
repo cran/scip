@@ -1,1 +1,1 @@
-#define SPX_GITHASH "b0f21ce7-dirty"
+#define SPX_GITHASH "703a275d-dirty"

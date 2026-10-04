@@ -42,8 +42,6 @@
 
 /*---+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+----9----+----0----+----1----+----2*/
 
-#include <string.h>
-
 #include "blockmemshell/memory.h"
 #include "scip/cons.h"
 #include "scip/cons_linear.h"
@@ -2638,9 +2636,9 @@ SCIP_RETCODE SCIPgetDualSolVal(
    assert(scip != NULL);
    assert(cons != NULL);
    assert(dualsolval != NULL);
-
    assert(SCIPconsGetHdlr(cons) != NULL);
-   assert(strcmp(SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), "linear" ) == 0);
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(SCIPconsGetHdlr(cons)), "linear", SCIP_INVALIDCALL );
 
    SCIP_CALL( SCIPconsGetNVars(cons, scip->set, &nvars, &success) );
    assert(success);  /* is always successful, since we only have linear constraints */
@@ -3330,7 +3328,7 @@ SCIP_RETCODE readSolFile(
    const char*           filename,           /**< name of the input file */
    SCIP_SOL*             sol,                /**< solution pointer */
    SCIP_Bool*            partial,            /**< pointer to store if the solution is partial (or NULL, if not needed) */
-   SCIP_Bool*            error               /**< pointer store if an error occured */
+   SCIP_Bool*            error               /**< pointer store if an error occurred */
    )
 {
    SCIP_HASHSET* unknownvars = NULL;
@@ -3564,7 +3562,7 @@ SCIP_RETCODE readXmlSolFile(
    const char*           filename,           /**< name of the input file */
    SCIP_SOL*             sol,                /**< solution pointer */
    SCIP_Bool*            partial,            /**< pointer to store if the solution is partial (or NULL if not needed) */
-   SCIP_Bool*            error               /**< pointer store if an error occured */
+   SCIP_Bool*            error               /**< pointer store if an error occurred */
    )
 {
    SCIP_HASHSET* unknownvars = NULL;
@@ -3585,7 +3583,7 @@ SCIP_RETCODE readXmlSolFile(
 
    if( start == NULL )
    {
-      SCIPerrorMessage("Some error occured during parsing the XML solution file.\n");
+      SCIPerrorMessage("Some error occurred during parsing the XML solution file.\n");
       return SCIP_READERROR;
    }
 
@@ -3812,7 +3810,7 @@ SCIP_RETCODE SCIPreadSolFile(
    SCIP_SOL*             sol,                /**< solution pointer */
    SCIP_Bool             xml,                /**< true, iff the given solution in written in XML */
    SCIP_Bool*            partial,            /**< pointer to store if the solution is partial */
-   SCIP_Bool*            error               /**< pointer store if an error occured */
+   SCIP_Bool*            error               /**< pointer store if an error occurred */
    )
 {
    SCIP_CALL( SCIPcheckStage(scip, "SCIPreadSolFile", FALSE, TRUE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE) );

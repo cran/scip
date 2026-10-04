@@ -716,12 +716,10 @@ SPxId SPxBoundFlippingRT<R>::selectEnter(
       slope = spxAbs(this->thesolver->instableLeaveVal);
    }
 
-   // set up structures for the quicksort implementation
    BreakpointCompare compare;
-   compare.entry = breakpoints.get_const_ptr();
 
    // pointer to end of sorted part of breakpoints
-   int sorted = 0;
+   int sorted = 1;
    // minimum number of entries that are supposed to be sorted by partial sort
    int sortsize = 4;
 
@@ -729,9 +727,9 @@ SPxId SPxBoundFlippingRT<R>::selectEnter(
    for(npassedBp = 0; npassedBp < nBp && slope > 0; ++npassedBp)
    {
       // sort breakpoints only partially to save time
-      if(npassedBp > sorted)
+      if(npassedBp >= sorted)
       {
-         sorted = SPxQuicksortPart(breakpoints.get_ptr(), compare, sorted + 1, nBp, sortsize);
+         sorted = SPxQuicksortPart(breakpoints.get_ptr(), compare, sorted, nBp, sortsize);
       }
 
       int i = breakpoints[npassedBp].idx;
@@ -802,9 +800,9 @@ SPxId SPxBoundFlippingRT<R>::selectEnter(
       R stableDelta = 0;
 
       // get next breakpoints in increasing order
-      if(stableBp > sorted)
+      if(stableBp >= sorted)
       {
-         sorted = SPxQuicksortPart(breakpoints.get_ptr(), compare, sorted + 1, nBp, sortsize);
+         sorted = SPxQuicksortPart(breakpoints.get_ptr(), compare, sorted, nBp, sortsize);
       }
 
       int idx = breakpoints[stableBp].idx;
@@ -1084,12 +1082,10 @@ int SPxBoundFlippingRT<R>::selectLeave(
       slope = this->thesolver->instableEnterVal;
    }
 
-   // set up structures for the quicksort implementation
    BreakpointCompare compare;
-   compare.entry = breakpoints.get_const_ptr();
 
    // pointer to end of sorted part of breakpoints
-   int sorted = 0;
+   int sorted = 1;
    // minimum number of entries that are supposed to be sorted by partial sort
    int sortsize = 4;
 
@@ -1097,9 +1093,9 @@ int SPxBoundFlippingRT<R>::selectLeave(
    for(npassedBp = 0; npassedBp < nBp && slope > 0; ++npassedBp)
    {
       // sort breakpoints only partially to save time
-      if(npassedBp > sorted)
+      if(npassedBp >= sorted)
       {
-         sorted = SPxQuicksortPart(breakpoints.get_ptr(), compare, sorted + 1, nBp, sortsize);
+         sorted = SPxQuicksortPart(breakpoints.get_ptr(), compare, sorted, nBp, sortsize);
       }
 
       assert(breakpoints[npassedBp].src == FVEC);
@@ -1156,9 +1152,9 @@ int SPxBoundFlippingRT<R>::selectLeave(
       R stableDelta = 0;
 
       // get next breakpoints in increasing order
-      if(stableBp > sorted)
+      if(stableBp >= sorted)
       {
-         sorted = SPxQuicksortPart(breakpoints.get_ptr(), compare, sorted + 1, nBp, sortsize);
+         sorted = SPxQuicksortPart(breakpoints.get_ptr(), compare, sorted, nBp, sortsize);
       }
 
       int breakpointidx = breakpoints[stableBp].idx;

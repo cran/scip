@@ -51,7 +51,7 @@
 #include "scip/scip_randnumgen.h"
 #include "scip/scip_sol.h"
 #include "scip/scip_solvingstats.h"
-#include <string.h>
+
 
 #define HEUR_NAME             "twoopt"
 #define HEUR_DESC             "primal heuristic to improve incumbent solution by flipping pairs of variables"
@@ -81,7 +81,7 @@
 struct SCIP_HeurData
 {
    int                   lastsolindex;       /**< index of last solution for which heuristic was performed */
-   SCIP_Real             matchingrate;       /**< percentage by which two variables have have to match in their LP-row
+   SCIP_Real             matchingrate;       /**< percentage by which two variables have to match in their LP-row
                                               *   set to be associated as pair by heuristic */
    SCIP_VAR**            binvars;            /**< Array of binary variables which are sorted with respect to their occurrence
                                               *   in the LP-rows */
@@ -874,7 +874,8 @@ SCIP_DECL_HEURCOPY(heurCopyTwoopt)
 {  /*lint --e{715}*/
    assert(scip != NULL);
    assert(heur != NULL);
-   assert(strcmp(SCIPheurGetName(heur), HEUR_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPheurGetName(heur), HEUR_NAME, SCIP_INVALIDCALL );
 
    /* call inclusion method of primal heuristic */
    SCIP_CALL( SCIPincludeHeurTwoopt(scip) );
@@ -889,8 +890,9 @@ SCIP_DECL_HEURFREE(heurFreeTwoopt)
    SCIP_HEURDATA* heurdata;
 
    assert(heur != NULL);
-   assert(strcmp(SCIPheurGetName(heur), HEUR_NAME) == 0);
    assert(scip != NULL);
+
+   SCIP_STRINGEQ( SCIPheurGetName(heur), HEUR_NAME, SCIP_INVALIDCALL );
 
    /* free heuristic data */
    heurdata = SCIPheurGetData(heur);
@@ -908,8 +910,9 @@ SCIP_DECL_HEURINIT(heurInitTwoopt)
 {
    SCIP_HEURDATA* heurdata;
    assert(heur != NULL);
-   assert(strcmp(SCIPheurGetName(heur), HEUR_NAME) == 0);
    assert(scip != NULL);
+
+   SCIP_STRINGEQ( SCIPheurGetName(heur), HEUR_NAME, SCIP_INVALIDCALL );
 
    heurdata = SCIPheurGetData(heur);
    assert(heurdata != NULL);
@@ -1424,8 +1427,9 @@ SCIP_DECL_HEURINITSOL(heurInitsolTwoopt)
 {
    SCIP_HEURDATA* heurdata;
    assert(heur != NULL);
-   assert(strcmp(SCIPheurGetName(heur), HEUR_NAME) == 0);
    assert(scip != NULL);
+
+   SCIP_STRINGEQ( SCIPheurGetName(heur), HEUR_NAME, SCIP_INVALIDCALL );
 
    /* get heuristic data */
    heurdata = SCIPheurGetData(heur);
@@ -1461,8 +1465,9 @@ SCIP_DECL_HEUREXITSOL(heurExitsolTwoopt)
 
    assert(heur != NULL);
    assert(scip != NULL);
-   assert(strcmp(SCIPheurGetName(heur), HEUR_NAME) == 0);
    assert(scip != NULL);
+
+   SCIP_STRINGEQ( SCIPheurGetName(heur), HEUR_NAME, SCIP_INVALIDCALL );
 
    /* get heuristic data */
    heurdata = SCIPheurGetData(heur);

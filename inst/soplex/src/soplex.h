@@ -1695,6 +1695,9 @@ public:
    /// prints version and compilation options
    void printVersion() const;
 
+   /// prints external libraries
+   void printExternalCodes() const;
+
    /// checks if real LP and rational LP are in sync; dimensions will always be compared,
    /// vector and matrix values only if the respective parameter is set to true.
    /// If quiet is set to true the function will only display which vectors are different.
@@ -2564,6 +2567,12 @@ public:
                                 DataArray< typename SPxSolverBase<R>::VarStatus >& basisStatusRows,
                                 DataArray< typename SPxSolverBase<R>::VarStatus >& basisStatusCols, bool& stoppedTime,
                                 bool& stoppedIter, bool& error, bool& optimal);
+
+   /// factorizes rational basis matrix in column representation
+   void factorizeColumnRational(SolRational& sol,
+                                DataArray< typename SPxSolverBase<R>::VarStatus >& basisStatusRows,
+                                DataArray< typename SPxSolverBase<R>::VarStatus >& basisStatusCols, bool& stoppedTime,
+                                bool& stoppedIter, bool& error, bool& optimal, bool forceSolutionUpdate);
 
 private:
 

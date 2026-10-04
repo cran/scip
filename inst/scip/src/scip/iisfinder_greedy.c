@@ -29,9 +29,8 @@
  * @author Paul Meinhold
  */
 
-#include <assert.h>
-
 #include "scip/iisfinder_greedy.h"
+#include "scip/struct_iisfinder.h"
 
 #define IISFINDER_NAME           "greedy"
 #define IISFINDER_DESC           "greedy deletion or addition constraint deletion"
@@ -787,13 +786,14 @@ SCIP_RETCODE additionFilterBatch(
 
       /* Solve the reduced problem */
       retcode = additionSubproblem(iis, timelim, timelimperiter, nodelim, nodelimperiter, &feasible, &stopiter);
-      if( !silent )
-         SCIPiisfinderInfoMessage(iis, FALSE);
       if( !feasible || stopiter || timelim - SCIPiisGetTime(iis) <= 0 || ( nodelim != -1 && SCIPiisGetNNodes(iis) >= nodelim ) )
       {
          SCIP_CALL( SCIPfreeTransform(scip) );
          break;
       }
+
+      if( !silent )
+         SCIPiisfinderInfoMessage(iis, FALSE);
 
       if( dynamicreordering && retcode == SCIP_OKAY )
       {
@@ -828,12 +828,7 @@ SCIP_RETCODE additionFilterBatch(
                   }
                }
             }
-            if( k > 0 )
-            {
-               SCIPdebugMsg(scip, "Added %d constraints by reordering dynamically.\n", k);
-               if( ! silent )
-                  SCIPiisfinderInfoMessage(iis, FALSE);
-            }
+            SCIPdebugMsg(scip, "Added %d constraints by reordering dynamically.\n", k);
             SCIP_CALL( SCIPfreeSol(scip, &copysol) );
          }
       }
@@ -849,22 +844,40 @@ SCIP_RETCODE additionFilterBatch(
       SCIP_CALL( updateBatchsize(scip, initbatchsize, maxbatchsize, iteration, FALSE, batchingfactor, batchingoffset, batchupdateinterval, &batchsize) );
    }
 
-   /* Release any cons not in the IS */
-   for( i = 0; i < nconss; ++i )
+   /* If problem is feasible due to limit or interrupt, add the deleted constraints of the full infeasible problem */
+   if( feasible )
    {
-      if( !inIS[order[i]] )
+      assert(stopiter || SCIPiisGetTime(iis) >= timelim || (nodelim != -1 && SCIPiisGetNNodes(iis) >= nodelim));
+      SCIPdebugMsg(scip, "Hit limit or interrupt. Restore full infeasible problem.\n");
+      for( i = 0; i < nconss; ++i )
       {
-         SCIP_CALL( SCIPreleaseCons(scip, &conss[order[i]]) );
+         if( !inIS[order[i]] )
+         {
+            SCIP_CALL( SCIPaddCons(scip, conss[order[i]]) );
+            SCIP_CALL( SCIPreleaseCons(scip, &conss[order[i]]) );
+            inIS[order[i]] = TRUE;
+         }
+      }
+   }
+   else
+   {
+      /* Release any cons not in the IS */
+      for( i = 0; i < nconss; ++i )
+      {
+         if( !inIS[order[i]] )
+         {
+            SCIP_CALL( SCIPreleaseCons(scip, &conss[order[i]]) );
+         }
       }
    }
 
    SCIPfreeBlockMemoryArray(scip, &order, nconss);
    SCIPfreeBlockMemoryArray(scip, &inIS, nconss);
    SCIPfreeBlockMemoryArray(scip, &conss, nconss);
-   if( feasible )
-      SCIPiisSetSubscipInfeasible(iis, FALSE);
-   else
-      SCIPiisSetSubscipInfeasible(iis, TRUE);
+   SCIPiisSetSubscipInfeasible(iis, TRUE);
+
+   if( !silent )
+      SCIPiisfinderInfoMessage(iis, FALSE);
 
    return SCIP_OKAY;
 }
@@ -977,7 +990,8 @@ SCIP_DECL_IISFINDERCOPY(iisfinderCopyGreedy)
 {  /*lint --e{715}*/
    assert(scip != NULL);
    assert(iisfinder != NULL);
-   assert(strcmp(SCIPiisfinderGetName(iisfinder), IISFINDER_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPiisfinderGetName(iisfinder), IISFINDER_NAME, SCIP_INVALIDCALL );
 
    /* call inclusion method of IIS finder */
    SCIP_CALL( SCIPincludeIISfinderGreedy(scip) );
@@ -1121,17 +1135,16 @@ SCIP_RETCODE SCIPiisGreedyMakeIrreducible(
    SCIP_IIS*             iis                 /**< IIS data structure */
    )
 {
-   SCIP* scip = SCIPiisGetSubscip(iis);
+   SCIP* scip;
+   SCIP_HASHMAP* invconssmap = NULL;
    SCIP_Real timelim;
    SCIP_Longint nodelim;
+   SCIP_Bool isstandalone;
    SCIP_Bool removebounds;
    SCIP_Bool silent;
    SCIP_Bool alldeletionssolved = TRUE;
    int nvars;
    int nconss;
-   int maxbatchsize;
-
-   assert( scip != NULL );
 
    if( !SCIPiisIsSubscipInfeasible(iis) )
    {
@@ -1139,20 +1152,68 @@ SCIP_RETCODE SCIPiisGreedyMakeIrreducible(
       return SCIP_INVALIDDATA;
    }
 
-   nvars = SCIPgetNOrigVars(scip);
-   nconss = SCIPgetNOrigConss(scip);
-   maxbatchsize = MAX(nvars, nconss);
+   scip = SCIPiisGetSubscip(iis);
+   assert( scip != NULL );
 
+   /* if this function is called by a user outside of iisfinder.c::SCIPiisGenerate(), build inverse constraints hashmap */
+   isstandalone = !SCIPhashmapIsEmpty(iis->conssmap);
+   if( isstandalone )
+   {
+      SCIP_HASHMAPENTRY* entry;
+      SCIP_CONS* imagecons;
+      int nentries;
+      int c;
+
+      SCIP_CALL( SCIPhashmapCreate(&invconssmap, SCIPblkmem(scip), SCIPhashmapGetNElements(iis->conssmap)) );
+      nentries = SCIPhashmapGetNEntries(iis->conssmap);
+      for( c = 0; c < nentries; ++c )
+      {
+         entry = SCIPhashmapGetEntry(iis->conssmap, c);
+         if( entry == NULL )
+            continue;
+
+         imagecons = SCIPhashmapEntryGetImage(entry);
+         assert(imagecons != NULL);
+
+         SCIP_CALL( SCIPhashmapInsert(invconssmap, imagecons, SCIPhashmapEntryGetOrigin(entry)) );
+      }
+      SCIP_CALL( SCIPhashmapRemoveAll(iis->conssmap) );
+   }
+
+   /* get relevant parameters */
    SCIP_CALL( SCIPgetRealParam(scip, "iis/time", &timelim) );
    SCIP_CALL( SCIPgetLongintParam(scip, "iis/nodes", &nodelim) );
    SCIP_CALL( SCIPgetBoolParam(scip, "iis/removebounds", &removebounds) );
    SCIP_CALL( SCIPgetBoolParam(scip, "iis/silent", &silent) );
 
+   nvars = SCIPgetNOrigVars(scip);
+   nconss = SCIPgetNOrigConss(scip);
+
+   /* make irreducible by running the deletion filter with singleton batches */
    SCIP_CALL( deletionFilterBatch(iis, timelim, nodelim, removebounds, silent,
-         DEFAULT_TIMELIMPERITER, DEFAULT_NODELIMPERITER, TRUE, 1, maxbatchsize,
+         DEFAULT_TIMELIMPERITER, DEFAULT_NODELIMPERITER, TRUE, 1, MAX(nvars, nconss),
          DEFAULT_BATCHINGFACTOR, DEFAULT_BATCHINGOFFSET, DEFAULT_BATCHUPDATEINTERVAL, &alldeletionssolved) );
    if( alldeletionssolved && SCIPiisGetTime(iis) < timelim && ( nodelim == -1 || SCIPiisGetNNodes(iis) < nodelim ) )
       SCIPiisSetSubscipIrreducible(iis, TRUE);
+
+   /* recreate main constraints hashmap */
+   if( isstandalone )
+   {
+      SCIP_CONS** conss;
+      SCIP_CONS* imagecons;
+      int c;
+
+      assert(invconssmap != NULL);
+      nconss = SCIPgetNOrigConss(scip);
+      conss = SCIPgetOrigConss(scip);
+      for( c = 0; c < nconss; ++c )
+      {
+         imagecons = SCIPhashmapGetImage(invconssmap, conss[c]);
+         assert(imagecons != NULL);
+         SCIP_CALL( SCIPhashmapInsert(iis->conssmap, imagecons, conss[c]) );
+      }
+      SCIPhashmapFree(&invconssmap);
+   }
 
    return SCIP_OKAY;
 }

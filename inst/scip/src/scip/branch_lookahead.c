@@ -80,7 +80,7 @@
 #include "scip/scip_solvingstats.h"
 #include "scip/scip_tree.h"
 #include "scip/scip_var.h"
-#include <string.h>
+
 
 #define BRANCHRULE_NAME            "lookahead"
 #define BRANCHRULE_DESC            "full strong branching over multiple levels"
@@ -1139,7 +1139,7 @@ typedef struct
    int                   nsingleafterfilter; /**< number of times a single candidate remained after filtering */
    int                   noldcandidate;      /**< number of times the old candidate from last call with nonviolating
                                               *   reductions was branched on */
-   int                   nlperrorcalls;      /**< number of times an LP error occured and LAB branched without completely
+   int                   nlperrorcalls;      /**< number of times an LP error occurred and LAB branched without completely
                                               *   evaluating all candidates */
    int                   nlimitcalls;        /**< number of times a time limit was reached and LAB branched without
                                               *   completely evaluating all candidates */
@@ -5828,7 +5828,8 @@ SCIP_DECL_BRANCHCOPY(branchCopyLookahead)
 {  /*lint --e{715}*/
    assert(scip != NULL);
    assert(branchrule != NULL);
-   assert(strcmp(SCIPbranchruleGetName(branchrule), BRANCHRULE_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPbranchruleGetName(branchrule), BRANCHRULE_NAME, SCIP_INVALIDCALL );
 
    /* call inclusion method of branchrule */
    SCIP_CALL( SCIPincludeBranchruleLookahead(scip) );
@@ -5978,9 +5979,10 @@ SCIP_DECL_BRANCHEXECLP(branchExeclpLookahead)
    SCIP_Bool userusebincons;
 
    assert(branchrule != NULL);
-   assert(strcmp(SCIPbranchruleGetName(branchrule), BRANCHRULE_NAME) == 0);
    assert(scip != NULL);
    assert(result != NULL);
+
+   SCIP_STRINGEQ( SCIPbranchruleGetName(branchrule), BRANCHRULE_NAME, SCIP_INVALIDCALL );
 
    LABdebugMessage(scip, SCIP_VERBLEVEL_HIGH, "Entering branchExeclpLookahead at node %lld.\n", SCIPnodeGetNumber(SCIPgetCurrentNode(scip)));
 

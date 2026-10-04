@@ -44,9 +44,6 @@
 
 /*---+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+----9----+----0----+----1----+----2*/
 
-#include <assert.h>
-#include <string.h>
-
 #include "scip/cons_indicator.h"
 #include "scip/cons_linear.h"
 #include "scip/cons_nonlinear.h"
@@ -300,7 +297,7 @@ SCIP_RETCODE solveLP(
          SCIPdebugMsg(scip, "   lp was not solved\n");
          break;
       case SCIP_LPSOLSTAT_ERROR:
-         SCIPdebugMsg(scip, "   an error occured during solving lp\n");
+         SCIPdebugMsg(scip, "   an error occurred during solving lp\n");
          break;
       case SCIP_LPSOLSTAT_INFEASIBLE:
       case SCIP_LPSOLSTAT_OBJLIMIT:
@@ -1629,7 +1626,7 @@ SCIP_DECL_SORTPTRCOMP(compBoundsBoundtype)
       return diff;
 
    diff = (bound1->boundtype == SCIP_BOUNDTYPE_LOWER ? 1 : 0) - (bound2->boundtype == SCIP_BOUNDTYPE_LOWER ? 1 : 0);
-   if( diff != 0 )  /* cppcheck-suppress knownConditionTrueFalse */
+   if( diff != 0 )
       return diff;
 
    return (bound1->score == bound2->score) ? 0 : (bound1->score > bound2->score ? 1 : -1);
@@ -1771,7 +1768,7 @@ SCIP_RETCODE applySeparation(
       SCIPdebug( SCIPdebugMsg(scip, "applySeparation() - optimal=%u error=%u lpiter=%" SCIP_LONGINT_FORMAT "\n", optimal, error, nlpiter); )
       SCIPdebugMsg(scip, "oldval = %e newval = %e\n", oldval, SCIPvarGetLPSol(currbound->var));
 
-      /* leave if we did not solve the LP to optimality or an error occured */
+      /* leave if we did not solve the LP to optimality or an error occurred */
       if( error || !optimal )
          break;
 
@@ -3069,7 +3066,8 @@ SCIP_DECL_PROPCOPY(propCopyObbt)
 {  /*lint --e{715}*/
    assert(scip != NULL);
    assert(prop != NULL);
-   assert(strcmp(SCIPpropGetName(prop), PROP_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPpropGetName(prop), PROP_NAME, SCIP_INVALIDCALL );
 
    /* call inclusion method of constraint handler */
    SCIP_CALL( SCIPincludePropObbt(scip) );
@@ -3085,7 +3083,8 @@ SCIP_DECL_PROPINITSOL(propInitsolObbt)
 
    assert(scip != NULL);
    assert(prop != NULL);
-   assert(strcmp(SCIPpropGetName(prop), PROP_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPpropGetName(prop), PROP_NAME, SCIP_INVALIDCALL );
 
    /* get propagator data */
    propdata = SCIPpropGetData(prop);
@@ -3117,7 +3116,8 @@ SCIP_DECL_PROPEXEC(propExecObbt)
 
    assert(scip != NULL);
    assert(prop != NULL);
-   assert(strcmp(SCIPpropGetName(prop), PROP_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPpropGetName(prop), PROP_NAME, SCIP_INVALIDCALL );
 
    *result = SCIP_DIDNOTRUN;
 
@@ -3185,7 +3185,7 @@ SCIP_DECL_PROPEXEC(propExecObbt)
    SCIPdebugMsg(scip, "applying obbt for problem <%s> at depth %d\n", SCIPgetProbName(scip), SCIPgetDepth(scip));
 
    /* without an optimal LP solution we don't want to run; this may be because propagators with higher priority have
-    * already found reductions or numerical troubles occured during LP solving
+    * already found reductions or numerical troubles occurred during LP solving
     */
    if( SCIPgetLPSolstat(scip) != SCIP_LPSOLSTAT_OPTIMAL && SCIPgetLPSolstat(scip) != SCIP_LPSOLSTAT_UNBOUNDEDRAY )
    {
@@ -3242,7 +3242,8 @@ SCIP_DECL_PROPEXITSOL(propExitsolObbt)
 
    assert(scip != NULL);
    assert(prop != NULL);
-   assert(strcmp(SCIPpropGetName(prop), PROP_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPpropGetName(prop), PROP_NAME, SCIP_INVALIDCALL );
 
    /* get propagator data */
    propdata = SCIPpropGetData(prop);
@@ -3302,7 +3303,7 @@ SCIP_DECL_PROPFREE(propFreeObbt)
 {  /*lint --e{715}*/
    SCIP_PROPDATA* propdata;
 
-   assert(strcmp(SCIPpropGetName(prop), PROP_NAME) == 0);
+   SCIP_STRINGEQ( SCIPpropGetName(prop), PROP_NAME, SCIP_INVALIDCALL );
 
    /* free propagator data */
    propdata = SCIPpropGetData(prop);

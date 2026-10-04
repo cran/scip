@@ -34,8 +34,6 @@
 
 /*---+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+----9----+----0----+----1----+----2*/
 
-#include <assert.h>
-#include <string.h>
 #ifndef _WIN32
 #include <strings.h> /*lint --e{766}*/
 #endif
@@ -2420,47 +2418,47 @@ SCIP_RETCODE emphasisParse(
    /* check for global emphasis settings */
    if ( strcmp(paramname, "default") == 0 )
    {
-      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_DEFAULT, FALSE) );
+      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_DEFAULT, TRUE) );
       globalemphasis = TRUE;
    }
    else if ( strcmp(paramname, "counter") == 0 )
    {
-      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_COUNTER, FALSE) );
+      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_COUNTER, TRUE) );
       globalemphasis = TRUE;
    }
    else if ( strcmp(paramname, "cpsolver") == 0 )
    {
-      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_CPSOLVER, FALSE) );
+      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_CPSOLVER, TRUE) );
       globalemphasis = TRUE;
    }
    else if ( strcmp(paramname, "easycip") == 0 )
    {
-      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_EASYCIP, FALSE) );
+      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_EASYCIP, TRUE) );
       globalemphasis = TRUE;
    }
    else if ( strcmp(paramname, "feasibility") == 0 )
    {
-      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_FEASIBILITY, FALSE) );
+      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_FEASIBILITY, TRUE) );
       globalemphasis = TRUE;
    }
    else if ( strcmp(paramname, "hardlp") == 0 )
    {
-      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_HARDLP, FALSE) );
+      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_HARDLP, TRUE) );
       globalemphasis = TRUE;
    }
    else if ( strcmp(paramname, "optimality") == 0 )
    {
-      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_OPTIMALITY, FALSE) );
+      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_OPTIMALITY, TRUE) );
       globalemphasis = TRUE;
    }
    else if ( strcmp(paramname, "numerics") == 0 )
    {
-      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_NUMERICS, FALSE) );
+      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_NUMERICS, TRUE) );
       globalemphasis = TRUE;
    }
    else if ( strcmp(paramname, "benchmark") == 0 )
    {
-      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_BENCHMARK, FALSE) );
+      SCIP_CALL( SCIPparamsetSetEmphasis(paramset, set, messagehdlr, SCIP_PARAMEMPHASIS_BENCHMARK, TRUE) );
       globalemphasis = TRUE;
    }
 
@@ -2526,15 +2524,15 @@ SCIP_RETCODE emphasisParse(
    /* check which kind of emphasis we want to set */
    if ( strcmp(paramname, "heuristics") == 0 )
    {
-      SCIP_CALL( SCIPsetSetHeuristics(set, messagehdlr, paramsetting, FALSE) );
+      SCIP_CALL( SCIPsetSetHeuristics(set, messagehdlr, paramsetting, TRUE) );
    }
    else if ( strcmp(paramname, "presolving") == 0 )
    {
-      SCIP_CALL( SCIPsetSetPresolving(set, messagehdlr, paramsetting, FALSE) );
+      SCIP_CALL( SCIPsetSetPresolving(set, messagehdlr, paramsetting, TRUE) );
    }
    else if ( strcmp(paramname, "separating") == 0 )
    {
-      SCIP_CALL( SCIPsetSetSeparating(set, messagehdlr, paramsetting, FALSE) );
+      SCIP_CALL( SCIPsetSetSeparating(set, messagehdlr, paramsetting, TRUE) );
    }
    else
    {

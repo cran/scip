@@ -50,6 +50,9 @@
 #ifdef max
 #undef max   // undo definition of max in windows.h
 #endif
+#ifdef min
+#undef min   // undo definition of min in windows.h
+#endif
 #ifdef IGNORE
 #undef IGNORE // undo definition of IGNORE in windows.h
 #endif
@@ -305,7 +308,7 @@ public:
          ++probname;
 
       // initialize empty SCIP problem
-      SCIP_CALL_THROW( SCIPcreateProb(scip, probname, probdataDelOrigNl, NULL, NULL, NULL, NULL, NULL, (SCIP_PROBDATA*)probdata) );
+      SCIP_CALL_THROW( SCIPcreateProb(scip, probname, probdataDelOrigNl, NULL, NULL, NULL, NULL, NULL, reinterpret_cast<SCIP_PROBDATA*>(probdata)) );
 
       // try to open files with variable and constraint names
       // temporarily add ".col" and ".row", respectively, to filenamestub
@@ -2862,12 +2865,12 @@ public:
 static
 SCIP_DECL_PROBDELORIG(probdataDelOrigNl)
 {
-   SCIP_PROBNLDATA* probnldata = (SCIP_PROBNLDATA*)*probdata;
+   SCIP_PROBNLDATA* probnldata = reinterpret_cast<SCIP_PROBNLDATA*>(*probdata);
    int i;
 
    assert(probnldata != NULL);
    assert(probnldata->vars != NULL || probnldata->nvars == 0);
-   assert(probnldata->conss != NULL || probnldata->conss == 0);
+   assert(probnldata->conss != NULL || probnldata->nconss == 0);
 
    for( i = 0; i < probnldata->nconss; ++i )
    {
@@ -2883,7 +2886,7 @@ SCIP_DECL_PROBDELORIG(probdataDelOrigNl)
 
    SCIPfreeBlockMemoryArrayNull(scip, &probnldata->filenamestub, probnldata->filenamestublen+5);
 
-   SCIPfreeMemory(scip, (SCIP_PROBNLDATA**)probdata);
+   SCIPfreeMemory(scip, reinterpret_cast<SCIP_PROBNLDATA**>(probdata));
 
    return SCIP_OKAY;
 }
@@ -3260,7 +3263,7 @@ SCIP_RETCODE SCIPwriteSolutionNl(
 
    assert(scip != NULL);
 
-   probdata = (SCIP_PROBNLDATA*)SCIPgetProbData(scip);
+   probdata = reinterpret_cast<SCIP_PROBNLDATA*>(SCIPgetProbData(scip));
    if( probdata == NULL )
    {
       SCIPerrorMessage("No AMPL nl file read. Cannot write AMPL solution.\n");

@@ -1060,8 +1060,10 @@ SCIP_RETCODE replaceAggregatedVarsOrbisack(
       assert( SCIPvarIsActive(var) || SCIPvarGetStatus(var) == SCIP_VARSTATUS_NEGATED || SCIPvarGetStatus(var) == SCIP_VARSTATUS_FIXED );
       if ( var != vars1[i] )
       {
+         SCIP_CALL( SCIPunlockVarCons(scip, vars1[i], cons, TRUE, FALSE) );
          SCIP_CALL( SCIPreleaseVar(scip, &vars1[i]) );
          vars1[i] = var;
+         SCIP_CALL( SCIPlockVarCons(scip, vars1[i], cons, TRUE, FALSE) );
          SCIP_CALL( SCIPcaptureVar(scip, var) );
       }
 
@@ -1073,8 +1075,10 @@ SCIP_RETCODE replaceAggregatedVarsOrbisack(
       assert( SCIPvarIsActive(var) || SCIPvarGetStatus(var) == SCIP_VARSTATUS_NEGATED || SCIPvarGetStatus(var) == SCIP_VARSTATUS_FIXED );
       if ( var != vars2[i] )
       {
+         SCIP_CALL( SCIPunlockVarCons(scip, vars2[i], cons, FALSE, TRUE) );
          SCIP_CALL( SCIPreleaseVar(scip, &vars2[i]) );
          vars2[i] = var;
+         SCIP_CALL( SCIPlockVarCons(scip, vars2[i], cons, FALSE, TRUE) );
          SCIP_CALL( SCIPcaptureVar(scip, var) );
       }
    }
@@ -1093,7 +1097,8 @@ SCIP_DECL_CONSHDLRCOPY(conshdlrCopyOrbisack)
 {  /*lint --e{715}*/
    assert(scip != NULL);
    assert(conshdlr != NULL);
-   assert(strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    /* call inclusion method of constraint handler */
    SCIP_CALL( SCIPincludeConshdlrOrbisack(scip) );
@@ -1110,7 +1115,8 @@ SCIP_DECL_CONSDELETE(consDeleteOrbisack)
    assert( scip != 0 );
    assert( conshdlr != 0 );
    assert( consdata != 0 );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIP_CALL( consdataFree(scip, consdata) );
 
@@ -1126,7 +1132,8 @@ SCIP_DECL_CONSFREE(consFreeOrbisack)
 
    assert( scip != 0 );
    assert( conshdlr != 0 );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    conshdlrdata = SCIPconshdlrGetData(conshdlr);
    assert( conshdlrdata != NULL );
@@ -1146,9 +1153,10 @@ SCIP_DECL_CONSTRANS(consTransOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( sourcecons != NULL );
    assert( targetcons != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIPdebugMsg(scip, "Transforming constraint.\n");
 
@@ -1182,7 +1190,8 @@ SCIP_DECL_CONSINITLP(consInitlpOrbisack)
 
    assert( scip != 0 );
    assert( conshdlr != 0 );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    /* loop through constraints */
    for (c = 0; c < nconss; ++c)
@@ -1211,7 +1220,8 @@ SCIP_DECL_CONSINITSOL(consInitsolOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    /* determine maximum number of rows in an orbisack constraint */
    conshdlrdata = SCIPconshdlrGetData(conshdlr);
@@ -1249,8 +1259,9 @@ SCIP_DECL_CONSSEPALP(consSepalpOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( result != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIPdebugMsg(scip, "Separation method for orbisack constraints.\n");
 
@@ -1311,8 +1322,9 @@ SCIP_DECL_CONSSEPASOL(consSepasolOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( result != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIPdebugMsg(scip, "Separation method for orbisack constraints\n");
 
@@ -1375,8 +1387,9 @@ SCIP_DECL_CONSENFOLP(consEnfolpOrbisack)
 
    assert( scip != 0 );
    assert( conshdlr != 0 );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( result != 0 );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIPdebugMsg(scip, "Enfolp method for orbisack constraints\n");
 
@@ -1453,8 +1466,9 @@ SCIP_DECL_CONSENFOPS(consEnfopsOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( result != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIPdebugMsg(scip, "Enforcing method for orbisack constraints (pseudo solutions) ...\n");
 
@@ -1504,8 +1518,9 @@ SCIP_DECL_CONSENFORELAX(consEnforelaxOrbisack)
 
    assert( scip != 0 );
    assert( conshdlr != 0 );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( result != 0 );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIPdebugMsg(scip, "Enforelax method for orbisack constraints.\n");
 
@@ -1582,8 +1597,9 @@ SCIP_DECL_CONSCHECK(consCheckOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( result != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    *result = SCIP_FEASIBLE;
 
@@ -1629,8 +1645,9 @@ SCIP_DECL_CONSPROP(consPropOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( result != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    *result = SCIP_DIDNOTRUN;
 
@@ -1670,8 +1687,9 @@ SCIP_DECL_CONSPRESOL(consPresolOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( result != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIPdebugMsg(scip, "Presolving method of orbisack constraint handler. Propagating orbisack inequalities.\n");
 
@@ -1719,11 +1737,12 @@ SCIP_DECL_CONSRESPROP(consRespropOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( cons != NULL );
    assert( infervar != NULL );
    assert( bdchgidx != NULL );
    assert( result != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIPdebugMsg(scip, "Propagation resolution method of orbisack constraint handler.\n");
 
@@ -1825,7 +1844,8 @@ SCIP_DECL_CONSEXITPRE(consExitpreOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    for (c = 0; c < nconss; ++c)
    {
@@ -1856,8 +1876,9 @@ SCIP_DECL_CONSLOCK(consLockOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( cons != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIPdebugMsg(scip, "Locking method for orbisack constraint handler.\n");
 
@@ -1899,10 +1920,11 @@ SCIP_DECL_CONSCOPY(consCopyOrbisack)
    assert( cons != NULL );
    assert( sourcescip != NULL );
    assert( sourceconshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(sourceconshdlr), CONSHDLR_NAME) == 0 );
    assert( sourcecons != NULL );
    assert( varmap != NULL );
    assert( valid != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(sourceconshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    *valid = TRUE;
 
@@ -2098,8 +2120,9 @@ SCIP_DECL_CONSPRINT(consPrintOrbisack)
 
    assert( scip != NULL );
    assert( conshdlr != NULL );
-   assert( strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0 );
    assert( cons != NULL );
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    consdata = SCIPconsGetData(cons);
    assert( consdata != NULL );

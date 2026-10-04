@@ -735,15 +735,30 @@ Equivalently, we add the big-M constraint <span class="math inline">\(x_i \le u_
 <h2>Solver Controls</h2>
 <p>Use <code>scip_control()</code> with the one-shot interface, or
 <code>scip_set_param()</code> with the model-building interface, to tune
-solver behavior.</p>
+solver behavior. Besides individual parameters,
+<code>scip_control()</code> exposes SCIP’s emphasis meta-settings, which
+adjust whole families of parameters at once:
+<code>presolve_emphasis</code>, <code>heuristics_emphasis</code> and
+<code>separating_emphasis</code> (<code>&quot;aggressive&quot;</code>,
+<code>&quot;fast&quot;</code>, <code>&quot;off&quot;</code>), and the global
+<code>emphasis</code> (<code>&quot;feasibility&quot;</code>,
+<code>&quot;optimality&quot;</code>, <code>&quot;hardlp&quot;</code>,
+<code>&quot;numerics&quot;</code>, …). They are applied before any individual
+parameter, so an explicit setting always wins.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">## One-shot: time limit and gap tolerance</span></span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>ctrl <span class="ot">&lt;-</span> <span class="fu">scip_control</span>(<span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">time_limit =</span> <span class="dv">60</span>, <span class="at">gap_limit =</span> <span class="fl">0.01</span>)</span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="do">## Model-building: set SCIP parameters directly</span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">scip_model</span>(<span class="st">&quot;tuning_example&quot;</span>)</span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="fu">scip_set_param</span>(m, <span class="st">&quot;display/verblevel&quot;</span>, <span class="dv">0</span><span class="dt">L</span>)   <span class="co"># suppress output</span></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="fu">scip_set_param</span>(m, <span class="st">&quot;limits/time&quot;</span>, <span class="fl">60.0</span>)        <span class="co"># 60-second time limit</span></span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="fu">scip_set_param</span>(m, <span class="st">&quot;limits/gap&quot;</span>, <span class="fl">0.01</span>)         <span class="co"># 1% optimality gap</span></span></code></pre></div>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="do">## One-shot: aggressive presolving, heuristics, and cut separation</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>ctrl2 <span class="ot">&lt;-</span> <span class="fu">scip_control</span>(<span class="at">verbose =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>                      <span class="at">presolve_emphasis =</span> <span class="st">&quot;aggressive&quot;</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>                      <span class="at">heuristics_emphasis =</span> <span class="st">&quot;aggressive&quot;</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>                      <span class="at">separating_emphasis =</span> <span class="st">&quot;aggressive&quot;</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="do">## Model-building: set SCIP parameters directly</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">scip_model</span>(<span class="st">&quot;tuning_example&quot;</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="fu">scip_set_param</span>(m, <span class="st">&quot;display/verblevel&quot;</span>, <span class="dv">0</span><span class="dt">L</span>)   <span class="co"># suppress output</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="fu">scip_set_param</span>(m, <span class="st">&quot;limits/time&quot;</span>, <span class="fl">60.0</span>)        <span class="co"># 60-second time limit</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="fu">scip_set_param</span>(m, <span class="st">&quot;limits/gap&quot;</span>, <span class="fl">0.01</span>)         <span class="co"># 1% optimality gap</span></span></code></pre></div>
 <p>Common SCIP parameters:</p>
 <table>
 <thead>

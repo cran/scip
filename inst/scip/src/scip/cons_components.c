@@ -63,7 +63,7 @@
 #include "scip/scip_timing.h"
 #include "scip/scip_tree.h"
 #include "scip/scip_var.h"
-#include <string.h>
+
 
 #define CONSHDLR_NAME          "components"
 #define CONSHDLR_DESC          "independent components constraint handler"
@@ -2099,7 +2099,8 @@ SCIP_DECL_CONSHDLRCOPY(conshdlrCopyComponents)
 {  /*lint --e{715}*/
    assert(scip != NULL);
    assert(conshdlr != NULL);
-   assert(strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0);
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    /* call inclusion method of constraint handler */
    SCIP_CALL( SCIPincludeConshdlrComponents(scip) );
@@ -2134,10 +2135,11 @@ SCIP_DECL_CONSPROP(consPropComponents)
    SCIP_Longint nodelimit;
 
    assert(conshdlr != NULL);
-   assert(strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0);
    assert(result != NULL);
    assert(SCIPconshdlrGetNActiveConss(conshdlr) >= 0);
    assert(SCIPconshdlrGetNActiveConss(conshdlr) <= 1);
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    conshdlrdata = SCIPconshdlrGetData(conshdlr);
    assert(conshdlrdata != NULL);
@@ -2308,10 +2310,11 @@ SCIP_DECL_CONSPRESOL(consPresolComponents)
    int nvars;
 
    assert(conshdlr != NULL);
-   assert(strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0);
    assert(result != NULL);
    assert(SCIPconshdlrGetNActiveConss(conshdlr) >= 0);
    assert(SCIPconshdlrGetNActiveConss(conshdlr) <= 1);
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    conshdlrdata = SCIPconshdlrGetData(conshdlr);
    assert(conshdlrdata != NULL);
@@ -2373,7 +2376,7 @@ SCIP_DECL_CONSPRESOL(consPresolComponents)
       int ncompconss;
       int comp;
 
-      SCIPdebugMsg(scip, "found %d components (%d with small size) during presolving; overall problem size: %d vars (%d int, %d bin, %d cont), %d conss\n",
+      SCIPdebugMsg(scip, "found %d components (%d with small size) during presolving; overall problem size: %d vars (%d bin, %d int, %d cont), %d conss\n",
          ncomponents, ncompsmaxsize, SCIPgetNVars(scip), SCIPgetNBinVars(scip), SCIPgetNIntVars(scip), SCIPgetNContVars(scip) + SCIPgetNImplVars(scip), SCIPgetNConss(scip));
 
       /* build subscip */
@@ -2393,6 +2396,13 @@ SCIP_DECL_CONSPRESOL(consPresolComponents)
       /* loop over all components */
       for( comp = 0; comp < ncompsmaxsize && !SCIPisStopped(scip); comp++ )
       {
+         /* if there is only one component left, let's solve this in the main SCIP */
+         if( nsolved == ncomponents - 1 )
+         {
+            SCIPdebugMsg(scip, "Solve one remaining component in main SCIP ...\n");
+            break;
+         }
+
 #ifdef WITH_DEBUG_SOLUTION
          if( SCIPgetStage(subscip) > SCIP_STAGE_INIT )
          {
@@ -2412,6 +2422,8 @@ SCIP_DECL_CONSPRESOL(consPresolComponents)
          if( ncompconss == 0 )
          {
             assert(ncompvars == 1);
+            SCIPdebugMsg(scip, "Skipping component %d of size %d without constraints.\n", comp, ncompvars);
+            ++nsolved;
             continue;
          }
 
@@ -2496,9 +2508,6 @@ SCIP_DECL_CONSPRESOL(consPresolComponents)
          /* if the component is unbounded or infeasible, this holds for the complete problem as well */
          if( *result == SCIP_UNBOUNDED || *result == SCIP_CUTOFF )
             break;
-         /* if there is only one component left, let's solve this in the main SCIP */
-         else if( nsolved == ncomponents - 1 )
-            break;
       }
 
       SCIPfreeBufferArray(scip, &subvars);
@@ -2521,9 +2530,10 @@ static
 SCIP_DECL_CONSDELETE(consDeleteComponents)
 {  /*lint --e{715}*/
    assert(conshdlr != NULL);
-   assert(strcmp(SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME) == 0);
    assert(consdata != NULL);
    assert(*consdata != NULL);
+
+   SCIP_STRINGEQ( SCIPconshdlrGetName(conshdlr), CONSHDLR_NAME, SCIP_INVALIDCALL );
 
    SCIP_CALL( freeProblem((PROBLEM**) consdata) );
 

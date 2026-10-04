@@ -24,8 +24,8 @@ set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_DEBUG} ${CMAKE_C_FLAGS_RELEASE
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_RELEASE}")
 
 set(SCIP_VERSION_MAJOR 10)
-set(SCIP_VERSION_MINOR 0)
-set(SCIP_VERSION_PATCH 2)
+set(SCIP_VERSION_MINOR 1)
+set(SCIP_VERSION_PATCH 0)
 set(SCIP_VERSION_API 156)
 
 project(SCIP
@@ -135,6 +135,10 @@ string(TOUPPER ${EXACTSOLVE} EXACTSOLVE_UPPER) # Also allow "auto"
 set(CHECKSTAGE AUTO CACHE STRING "enable stage checks")
 set_property(CACHE CHECKSTAGE PROPERTY STRINGS AUTO ON OFF)
 string(TOUPPER ${CHECKSTAGE} CHECKSTAGE)
+
+set(CHECKNAME AUTO CACHE STRING "enable name checks")
+set_property(CACHE CHECKNAME PROPERTY STRINGS AUTO ON OFF)
+string(TOUPPER ${CHECKNAME} CHECKNAME)
 
 # Initialize SCIP_WITH_EXACTSOLVE.
 if(EXACTSOLVE)
@@ -261,10 +265,16 @@ set(ADD_C_AND_CXX_FLAGS -pedantic -Wall -W -Wpointer-arith -Wcast-align -Wwrite-
 set(ADD_C_FLAGS -Wsign-compare -Wstrict-prototypes -Wmissing-declarations -Wmissing-prototypes -Wno-override-init -Wno-uninitialized -Wno-maybe-uninitialized)
 set(ADD_CXX_FLAGS -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo -Wsynth -Wcast-qual -Wno-strict-overflow -Wno-psabi)
 
-# disable fused floating point contraction to enhance reproducibility across compilers and architectures
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+   # disable fused floating point contraction to enhance reproducibility across compilers and architectures
     add_compile_options(/fp:precise)
+    if((LPS STREQUAL "spx") AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+        # add /bigobj to avoid error C1128: number of sections exceeded object file format limit
+        # (see also https://github.com/scipopt/scip/pull/200)
+        add_compile_options(/bigobj)
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+    # disable fused floating point contraction to enhance reproducibility across compilers and architectures
     add_compile_options(-fp-model=precise)
     # to prevent symbols from svml exported twice we use the -shared-intel flag, see https://git.zib.de/integer/scip/issues/2872
     # this happens with the cplex static lib
@@ -416,6 +426,11 @@ endif()
 if(ZLIB_FOUND)
     message(STATUS "Finding ZLIB - found")
     set(SCIP_WITH_ZLIB ON)
+    # workaround for macOS SDK >= 26.4 not happy about an -isystem /path/to/macOS26.4.sdk/usr/include without a prior -isystem for C++ system headers
+    # removing the SYSTEM property for ZLIB (which is part of the macOS SDK) changes the -isystem to an -I
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set_property(TARGET ZLIB::ZLIB PROPERTY SYSTEM FALSE)
+    endif()
 else()
     message(STATUS "Support ZLIB: OFF")
     set(SCIP_WITH_ZLIB OFF)
@@ -992,6 +1007,15 @@ if((CHECKSTAGE STREQUAL "AUTO" AND CMAKE_BUILD_TYPE STREQUAL "Debug") OR (NOT CH
     set(SCIP_CHECK_STAGE on)
 endif()
 
+if((CHECKNAME STREQUAL "AUTO" AND CMAKE_BUILD_TYPE STREQUAL "Debug") OR (NOT CHECKNAME STREQUAL "AUTO" AND CHECKNAME))
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        message(STATUS "Enabling name checks")
+    else()
+        message(WARNING "Enabling name checks decreases performance")
+    endif()
+    set(SCIP_CHECK_NAME on)
+endif()
+
 message(STATUS "Finding CRITERION")
 find_package(CRITERION)
 if(CRITERION_FOUND)
@@ -1022,7 +1046,6 @@ if(BUILD_TESTING)
     #
     add_custom_target(unittests)
     add_subdirectory(tests EXCLUDE_FROM_ALL)
-    add_subdirectory(doc EXCLUDE_FROM_ALL)
 
     #
     # add examples
@@ -1040,6 +1063,8 @@ if(BUILD_TESTING)
 
     add_custom_target(all_executables DEPENDS scip unittests examples applications)
 endif()
+
+add_subdirectory(doc EXCLUDE_FROM_ALL)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OLD_CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
@@ -1066,6 +1091,7 @@ log_option(EXACTSOLVE)
 log_option(LPSEXACT)
 log_option(MPFR)
 log_option(CHECKSTAGE)
+log_option(CHECKNAME)
 
 if(AUTOBUILD)
   file(APPEND ${CMAKE_BINARY_DIR}/cmake.log "-DAUTOBUILD=on")
